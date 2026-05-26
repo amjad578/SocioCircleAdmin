@@ -10,9 +10,9 @@ const DashboardLayout: React.FC = () => {
         <ProtectedRoute>
             <Box sx={{ display: 'flex', minHeight: '100vh' }}>
                 <Sidebar />
-                <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
                     <Topbar />
-                    <Box component="main" sx={{ p: 3, flexGrow: 1 }}>
+                    <Box component="main" sx={{ p: 3, flexGrow: 1, minWidth: 0, overflowX: 'hidden', overflowY: 'auto' }}>
                         <Outlet />
                     </Box>
                 </Box>

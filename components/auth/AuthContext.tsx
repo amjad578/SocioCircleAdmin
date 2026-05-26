@@ -9,14 +9,17 @@ export type Permission =
   | 'boxes:edit'
   | 'boxes:toggle'
   | 'queries:view'
-  | 'queries:edit';
+  | 'queries:edit'
+  | 'brands:view'
+  | 'brands:edit';
 
 export type MenuItem = {
   id: string;
   label: string;
-  path: string;
+  path?: string;
   icon?: string;
   requiredPermission?: Permission;
+  children?: MenuItem[];
 };
 
 export type User = {
@@ -77,20 +80,32 @@ function buildMenu(_role: string): MenuItem[] {
       path: '/queries',
       icon: 'queries',
       requiredPermission: 'queries:view'
-    }
+    },
+    {
+      id: 'brands',
+      label: 'Brands',
+      icon: 'brands',
+      requiredPermission: 'brands:view',
+      children: [
+        { id: 'brands-all', label: 'All Brands', path: '/brands' },
+        { id: 'brands-pending', label: 'Pending Brands', path: '/brands/pending' },
+        { id: 'brands-approved', label: 'Approved Brands', path: '/brands/approved' },
+        { id: 'brands-rejected', label: 'Rejected Brands', path: '/brands/rejected' },
+      ],
+    },
   ];
 }
 
 /** Map backend role to frontend permissions */
 function getPermissionsForRole(role: string): Permission[] {
   if (role === 'super_admin') {
-    return ['dashboard:view', 'boxes:view', 'boxes:create', 'boxes:edit', 'boxes:toggle', 'queries:view', 'queries:edit'];
+    return ['dashboard:view', 'boxes:view', 'boxes:create', 'boxes:edit', 'boxes:toggle', 'queries:view', 'queries:edit', 'brands:view', 'brands:edit'];
   }
   if (role === 'admin') {
-    return ['dashboard:view', 'boxes:view', 'boxes:create', 'boxes:edit', 'boxes:toggle', 'queries:view', 'queries:edit'];
+    return ['dashboard:view', 'boxes:view', 'boxes:create', 'boxes:edit', 'boxes:toggle', 'queries:view', 'queries:edit', 'brands:view', 'brands:edit'];
   }
   // Default: read-only
-  return ['dashboard:view', 'boxes:view', 'queries:view'];
+  return ['dashboard:view', 'boxes:view', 'queries:view', 'brands:view'];
 }
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -108,7 +123,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const stored = typeof window !== 'undefined' ? window.localStorage.getItem(STORAGE_KEY) : null;
       if (stored) {
         const parsed = JSON.parse(stored) as AuthState;
-        setState({ ...parsed, loading: false });
+        const menu = parsed.user ? buildMenu(parsed.user.role) : [];
+        setState({ ...parsed, menu, loading: false });
       } else {
         setState((prev) => ({ ...prev, loading: false }));
       }

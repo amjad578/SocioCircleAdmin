@@ -29,6 +29,10 @@ import QueriesListPage from '@/src/pages/queries/QueriesListPage';
 import QueryDetailPage from '@/src/pages/queries/QueryDetailPage';
 import QueryEditPage from '@/src/pages/queries/QueryEditPage';
 
+// Brands
+import BrandsListPage from '@/src/pages/brands/BrandsListPage';
+import BrandDetailPage from '@/src/pages/brands/BrandDetailPage';
+
 const App: React.FC = () => {
     return (
         <Routes>
@@ -63,6 +67,13 @@ const App: React.FC = () => {
                 <Route path="/queries" element={<QueriesListPage />} />
                 <Route path="/queries/:id" element={<QueryDetailPage />} />
                 <Route path="/queries/:id/edit" element={<QueryEditPage />} />
+
+                {/* Brands */}
+                <Route path="/brands" element={<BrandsListPage mode="all" />} />
+                <Route path="/brands/pending" element={<BrandsListPage mode="pending" />} />
+                <Route path="/brands/approved" element={<BrandsListPage mode="approved" />} />
+                <Route path="/brands/rejected" element={<BrandsListPage mode="rejected" />} />
+                <Route path="/brands/:id" element={<BrandDetailPage />} />
             </Route>
 
             {/* Catch all */}

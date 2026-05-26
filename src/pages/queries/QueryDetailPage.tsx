@@ -142,9 +142,9 @@ const QueryDetailPage: React.FC = () => {
                         <Grid size={{ xs: 12 }}>
                             <DetailRow label="Description" value={query.description} />
                         </Grid>
-                        {/* <Grid size={{ xs: 12 }}>
-                            <DetailRow label="Remarks" value={query.remarks} />
-                        </Grid> */}
+                        <Grid size={{ xs: 12 }}>
+                            <DetailRow label="Reasons" value={query.reasons} />
+                        </Grid>
                     </Grid>
 
 

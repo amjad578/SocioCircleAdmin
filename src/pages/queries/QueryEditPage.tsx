@@ -30,7 +30,7 @@ const QueryEditPage: React.FC = () => {
         email: string;
         phone: string;
         description: string;
-        remarks: string;
+        reasons: string;
         status: ApiQueryStatus;
     };
 
@@ -48,7 +48,7 @@ const QueryEditPage: React.FC = () => {
                     email: data.email,
                     phone: data.phone,
                     description: data.description ?? '',
-                    remarks: data.remarks ?? '',
+                    reasons: data.reasons ?? '',
                     status: data.status,
                 });
             } catch (err: any) {
@@ -71,7 +71,7 @@ const QueryEditPage: React.FC = () => {
                 email: values.email,
                 phone: values.phone,
                 description: values.description,
-                remarks: values.remarks,
+                reasons: values.reasons,
                 status: values.status,
             });
             navigate(`/queries/${id}`);
@@ -158,12 +158,12 @@ const QueryEditPage: React.FC = () => {
                                 </Grid>
                                 {/* <Grid size={{ xs: 12 }}>
                                     <TextField
-                                        label="Remarks"
+                                        label="Reasons"
                                         fullWidth
                                         multiline
                                         rows={3}
-                                        value={values.remarks}
-                                        onChange={(e) => setValues((v) => ({ ...v!, remarks: e.target.value }))}
+                                        value={values.reasons}
+                                        onChange={(e) => setValues((v) => ({ ...v!, reasons: e.target.value }))}
                                     />
                                 </Grid> */}
                             </Grid>

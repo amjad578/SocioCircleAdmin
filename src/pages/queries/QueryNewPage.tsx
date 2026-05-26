@@ -27,7 +27,7 @@ const QueryNewPage: React.FC = () => {
         email: '',
         phone: '',
         description: '',
-        remarks: '',
+        reasons: '',
         status: 'pending' as ApiQueryStatus,
     });
     const [loading, setLoading] = React.useState(false);
@@ -116,12 +116,12 @@ const QueryNewPage: React.FC = () => {
                         </Grid>
                         <Grid size={{ xs: 12 }}>
                             <TextField
-                                label="Remarks"
+                                label="Reasons"
                                 fullWidth
                                 multiline
                                 rows={2}
-                                value={values.remarks}
-                                onChange={(e) => setValues((v) => ({ ...v, remarks: e.target.value }))}
+                                value={values.reasons}
+                                onChange={(e) => setValues((v) => ({ ...v, reasons: e.target.value }))}
                             />
                         </Grid>
                     </Grid>

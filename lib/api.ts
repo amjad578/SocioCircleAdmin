@@ -550,7 +550,7 @@ export type ApiQuery = {
     email: string;
     phone: string;
     description?: string;
-    remarks?: string;
+    reasons?: string;
     media?: string[];
     status: ApiQueryStatus;
     createdAt?: string;
@@ -598,7 +598,7 @@ export async function apiCreateQuery(payload: {
     email: string;
     phone: string;
     description?: string;
-    remarks?: string;
+    reasons?: string;
     status?: ApiQueryStatus;
     mediaFiles?: File[];
 }): Promise<ApiQuery> {
@@ -607,7 +607,7 @@ export async function apiCreateQuery(payload: {
     form.append('email', payload.email);
     form.append('phone', payload.phone);
     if (payload.description) form.append('description', payload.description);
-    if (payload.remarks) form.append('remarks', payload.remarks);
+    if (payload.reasons) form.append('reasons', payload.reasons);
     if (payload.status) form.append('status', payload.status);
     if (payload.mediaFiles?.length) {
         payload.mediaFiles.forEach((file) => form.append('media', file));
@@ -627,7 +627,7 @@ export async function apiUpdateQuery(
         email?: string;
         phone?: string;
         description?: string;
-        remarks?: string;
+        reasons?: string;
         status?: ApiQueryStatus;
         mediaFiles?: File[];
         existingMedia?: string[];
@@ -638,7 +638,7 @@ export async function apiUpdateQuery(
     if (payload.email) requestPayload['email'] = payload.email
     if (payload.phone) requestPayload['phone'] = payload.phone
     if (payload.description !== undefined) requestPayload['description'] = payload.description
-    if (payload.remarks !== undefined) requestPayload['remarks'] = payload.remarks
+    if (payload.reasons !== undefined) requestPayload['reasons'] = payload.reasons
     if (payload.status) requestPayload['status'] = payload.status
 
     const res = await apiFetch<ApiSingleResponse<ApiQuery>>(
@@ -783,4 +783,140 @@ export async function apiUpdateAccordion(id: string, payload: { title?: string; 
 
 export async function apiDeleteAccordion(id: string): Promise<void> {
     await apiFetch(`/admin/accordions/${id}`, { method: 'DELETE' });
+}
+
+// ─── Brands ───────────────────────────────────────────────────────────────────
+
+export type ApiBrandApprovalStatus = 'pending' | 'approved' | 'rejected';
+export type ApiBrandAccountStatus = 'active' | 'inactive' | 'delete';
+
+/** @deprecated Use ApiBrandApprovalStatus */
+export type ApiBrandStatus = ApiBrandApprovalStatus;
+
+export type ApiBrand = {
+    _id: string;
+    companyName: string;
+    ownerName: string;
+    email: string;
+    mobile: string;
+    country: string;
+    state: string;
+    city: string;
+    status: ApiBrandApprovalStatus;
+    accountStatus: ApiBrandAccountStatus;
+    companyLogo?: string;
+    websiteUrl?: string;
+    approvedAt?: string | null;
+    rejectedAt?: string | null;
+    createdAt?: string;
+    updatedAt?: string;
+};
+
+export type ApiBrandProfile = {
+    _id: string;
+    brandId: string;
+    companyLogo?: string;
+    companyDescription?: string;
+    websiteUrl?: string;
+    gstNumber?: string;
+    address?: string;
+    establishedYear?: number;
+    socialLinks?: {
+        instagram?: string;
+    };
+};
+
+export type ApiAdminRemark = {
+    _id: string;
+    brandId: string;
+    adminId: string;
+    remark: string;
+    status: ApiBrandStatus;
+    createdAt?: string;
+};
+
+export type ApiBrandDetails = {
+    brand: ApiBrand;
+    profile: ApiBrandProfile | null;
+    remarks: ApiAdminRemark[];
+};
+
+export type ApiBrandListParams = {
+    search?: string;
+    status?: ApiBrandApprovalStatus;
+    accountStatus?: 'active' | 'inactive';
+    page?: number;
+    limit?: number;
+    sortBy?: 'createdAt' | 'companyName' | 'status' | 'accountStatus' | 'approvedAt' | 'rejectedAt';
+    sortOrder?: 'asc' | 'desc';
+};
+
+function buildBrandQueryString(params?: ApiBrandListParams): string {
+    const q = new URLSearchParams();
+    if (params?.search) q.set('search', params.search);
+    if (params?.status) q.set('status', params.status);
+    if (params?.accountStatus) q.set('accountStatus', params.accountStatus);
+    if (params?.page) q.set('page', String(params.page));
+    if (params?.limit) q.set('limit', String(params.limit));
+    if (params?.sortBy) q.set('sortBy', params.sortBy);
+    if (params?.sortOrder) q.set('sortOrder', params.sortOrder);
+    const qs = q.toString();
+    return qs ? `?${qs}` : '';
+}
+
+async function fetchBrandList(
+    path: string,
+    params?: ApiBrandListParams
+): Promise<{ data: ApiBrand[]; total: number; page: number; limit: number; totalPages: number }> {
+    const res = await apiFetch<ApiListResponse<ApiBrand>>(`${path}${buildBrandQueryString(params)}`);
+    return res.data;
+}
+
+export async function apiListAllBrands(params?: ApiBrandListParams) {
+    return fetchBrandList('/brands/admin/all', params);
+}
+
+export async function apiListPendingBrands(params?: ApiBrandListParams) {
+    return fetchBrandList('/brands/admin/pending', params);
+}
+
+export async function apiListApprovedBrands(params?: ApiBrandListParams) {
+    return fetchBrandList('/brands/admin/approved', params);
+}
+
+export async function apiListRejectedBrands(params?: ApiBrandListParams) {
+    return fetchBrandList('/brands/admin/rejected', params);
+}
+
+export async function apiGetBrandDetails(id: string): Promise<ApiBrandDetails> {
+    const res = await apiFetch<ApiSingleResponse<ApiBrandDetails>>(`/brands/admin/${id}`);
+    return res.data;
+}
+
+export async function apiApproveBrand(id: string, remarks?: string): Promise<ApiBrand> {
+    const res = await apiFetch<ApiSingleResponse<ApiBrand>>(`/brands/admin/${id}/approve`, {
+        method: 'PUT',
+        body: JSON.stringify({ remarks: remarks ?? '' }),
+    });
+    return res.data;
+}
+
+export async function apiRejectBrand(id: string, remarks?: string): Promise<ApiBrand> {
+    const res = await apiFetch<ApiSingleResponse<ApiBrand>>(`/brands/admin/${id}/reject`, {
+        method: 'PUT',
+        body: JSON.stringify({ remarks: remarks ?? '' }),
+    });
+    return res.data;
+}
+
+export async function apiUpdateBrandAccountStatus(
+    id: string,
+    accountStatus: ApiBrandAccountStatus,
+    remarks?: string
+): Promise<ApiBrand> {
+    const res = await apiFetch<ApiSingleResponse<ApiBrand>>(`/brands/admin/${id}/account-status`, {
+        method: 'PUT',
+        body: JSON.stringify({ accountStatus, remarks: remarks ?? '' }),
+    });
+    return res.data;
 }

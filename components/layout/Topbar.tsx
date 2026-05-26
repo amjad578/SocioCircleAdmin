@@ -55,7 +55,8 @@ export const Topbar: React.FC = () => {
           >
             <AccountCircleIcon color="action" />
             <Typography variant="body2" sx={{ display: { xs: 'none', sm: 'block' } }}>
-              {user?.name} ({user?.role})
+              {user?.name} 
+              {/* ({user?.role}) */}
             </Typography>
           </IconButton>
           <Menu
