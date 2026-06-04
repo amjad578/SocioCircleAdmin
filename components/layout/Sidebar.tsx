@@ -21,7 +21,8 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 import ViewCarouselIcon from '@mui/icons-material/ViewCarousel';
 import StorefrontIcon from '@mui/icons-material/Storefront';
-import { useAuth, type MenuItem } from '@/components/auth/AuthContext';
+import PersonIcon from '@mui/icons-material/Person';
+import { useAuth, type MenuItem, type MenuSubAccent } from '@/components/auth/AuthContext';
 
 const iconMap: Record<string, React.ReactNode> = {
   dashboard: <DashboardIcon />,
@@ -32,11 +33,23 @@ const iconMap: Record<string, React.ReactNode> = {
   queries: <QuestionAnswerIcon />,
   banners: <ViewCarouselIcon />,
   brands: <StorefrontIcon />,
+  influencers: <PersonIcon />,
+};
+
+const ACCENT_COLOR: Record<MenuSubAccent, string> = {
+  default: 'text.disabled',
+  warning: 'warning.main',
+  success: 'success.main',
+  error: 'error.main',
+  info: 'info.main',
 };
 
 function isPathActive(pathname: string, path: string): boolean {
   if (path === '/brands') {
     return pathname === '/brands' || /^\/brands\/[a-f\d]{24}$/i.test(pathname);
+  }
+  if (path === '/influencers') {
+    return pathname === '/influencers' || /^\/influencers\/[a-f\d]{24}$/i.test(pathname);
   }
   return pathname === path || pathname.startsWith(`${path}/`);
 }
@@ -45,6 +58,20 @@ function isGroupActive(pathname: string, item: MenuItem): boolean {
   if (item.path && isPathActive(pathname, item.path)) return true;
   return item.children?.some((child) => child.path && isPathActive(pathname, child.path)) ?? false;
 }
+
+const SubMenuDot: React.FC<{ accent?: MenuSubAccent; selected: boolean }> = ({ accent = 'default', selected }) => (
+  <Box
+    sx={{
+      width: 8,
+      height: 8,
+      borderRadius: '50%',
+      flexShrink: 0,
+      bgcolor: selected ? 'primary.contrastText' : ACCENT_COLOR[accent],
+      opacity: accent === 'default' && !selected ? 0.45 : 1,
+      boxShadow: selected ? '0 0 0 2px rgba(255,255,255,0.35)' : 'none',
+    }}
+  />
+);
 
 export const Sidebar: React.FC = () => {
   const { menu } = useAuth();
@@ -78,8 +105,19 @@ export const Sidebar: React.FC = () => {
         onClick={() => navigate(item.path!)}
         sx={{
           justifyContent: collapsed ? 'center' : 'flex-start',
-          px: collapsed ? 1.5 : nested ? 4 : 2,
-          py: nested ? 0.75 : 1,
+          px: collapsed ? 1.5 : nested ? 1.5 : 2,
+          py: nested ? 0.65 : 1,
+          mx: nested ? 1 : 0,
+          mb: nested ? 0.25 : 0,
+          borderRadius: nested ? 1.5 : 0,
+          minHeight: nested ? 36 : 48,
+          '&.Mui-selected': nested
+            ? {
+                bgcolor: 'primary.main',
+                color: 'primary.contrastText',
+                '&:hover': { bgcolor: 'primary.dark' },
+              }
+            : undefined,
         }}
       >
         {item.icon && !nested && (
@@ -88,16 +126,27 @@ export const Sidebar: React.FC = () => {
               minWidth: collapsed ? 0 : 40,
               mr: collapsed ? 0 : 1.5,
               justifyContent: 'center',
+              color: 'inherit',
             }}
           >
             {iconMap[item.icon] ?? null}
           </ListItemIcon>
         )}
+        {nested && !collapsed && (
+          <Box sx={{ display: 'flex', alignItems: 'center', mr: 1.25, ml: 0.25 }}>
+            <SubMenuDot accent={item.accent} selected={selected} />
+          </Box>
+        )}
         {!collapsed && (
           <ListItemText
             primary={item.label}
             slotProps={{
-              primary: { sx: nested ? { fontSize: '0.875rem' } : undefined },
+              primary: {
+                sx: {
+                  fontSize: nested ? '0.8125rem' : undefined,
+                  fontWeight: nested && selected ? 600 : nested ? 500 : undefined,
+                },
+              },
             }}
           />
         )}
@@ -125,6 +174,8 @@ export const Sidebar: React.FC = () => {
             sx={{
               justifyContent: collapsed ? 'center' : 'flex-start',
               px: collapsed ? 1.5 : 2,
+              py: 1,
+              bgcolor: groupActive && groupOpen ? 'action.selected' : undefined,
             }}
           >
             {item.icon && (
@@ -133,6 +184,7 @@ export const Sidebar: React.FC = () => {
                   minWidth: collapsed ? 0 : 40,
                   mr: collapsed ? 0 : 1.5,
                   justifyContent: 'center',
+                  color: groupActive ? 'primary.main' : 'inherit',
                 }}
               >
                 {iconMap[item.icon] ?? null}
@@ -140,16 +192,43 @@ export const Sidebar: React.FC = () => {
             )}
             {!collapsed && (
               <>
-                <ListItemText primary={item.label} />
-                {groupOpen ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
+                <ListItemText
+                  primary={item.label}
+                  slotProps={{
+                    primary: {
+                      sx: { fontWeight: groupActive ? 600 : 500, fontSize: '0.9375rem' },
+                    },
+                  }}
+                />
+                {groupOpen ? (
+                  <ExpandLessIcon fontSize="small" color="action" />
+                ) : (
+                  <ExpandMoreIcon fontSize="small" color="action" />
+                )}
               </>
             )}
           </ListItemButton>
           {!collapsed && (
             <Collapse in={groupOpen} timeout="auto" unmountOnExit>
-              <List component="div" disablePadding>
-                {item.children.map((child) => renderLeaf(child, true))}
-              </List>
+              <Box
+                sx={{
+                  mx: 1.5,
+                  mb: 1,
+                  py: 0.5,
+                  pl: 0.5,
+                  borderLeft: 2,
+                  borderColor: groupActive ? 'primary.light' : 'divider',
+                  borderRadius: '0 8px 8px 0',
+                  bgcolor: (theme) =>
+                    theme.palette.mode === 'light'
+                      ? 'rgba(0, 0, 0, 0.02)'
+                      : 'rgba(255, 255, 255, 0.04)',
+                }}
+              >
+                <List component="div" disablePadding dense sx={{ pt: 0.25, pb: 0.25 }}>
+                  {item.children.map((child) => renderLeaf(child, true))}
+                </List>
+              </Box>
             </Collapse>
           )}
         </React.Fragment>
@@ -198,7 +277,7 @@ export const Sidebar: React.FC = () => {
         </Tooltip>
       </Box>
       <Divider />
-      <List sx={{ pt: 1 }}>{menu.map((item) => renderItem(item))}</List>
+      <List sx={{ pt: 1, pb: 2 }}>{menu.map((item) => renderItem(item))}</List>
     </Box>
   );
 };

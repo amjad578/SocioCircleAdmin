@@ -33,6 +33,10 @@ import QueryEditPage from '@/src/pages/queries/QueryEditPage';
 import BrandsListPage from '@/src/pages/brands/BrandsListPage';
 import BrandDetailPage from '@/src/pages/brands/BrandDetailPage';
 
+// Influencers
+import InfluencersListPage from '@/src/pages/influencers/InfluencersListPage';
+import InfluencerDetailPage from '@/src/pages/influencers/InfluencerDetailPage';
+
 const App: React.FC = () => {
     return (
         <Routes>
@@ -74,6 +78,14 @@ const App: React.FC = () => {
                 <Route path="/brands/approved" element={<BrandsListPage mode="approved" />} />
                 <Route path="/brands/rejected" element={<BrandsListPage mode="rejected" />} />
                 <Route path="/brands/:id" element={<BrandDetailPage />} />
+
+                {/* Influencers */}
+                <Route path="/influencers" element={<InfluencersListPage mode="all" />} />
+                <Route path="/influencers/review" element={<InfluencersListPage mode="review" />} />
+                <Route path="/influencers/verified" element={<InfluencersListPage mode="verified" />} />
+                <Route path="/influencers/rejected" element={<InfluencersListPage mode="rejected" />} />
+                <Route path="/influencers/suspended" element={<InfluencersListPage mode="suspended" />} />
+                <Route path="/influencers/:id" element={<InfluencerDetailPage />} />
             </Route>
 
             {/* Catch all */}

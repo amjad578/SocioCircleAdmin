@@ -11,13 +11,18 @@ export type Permission =
   | 'queries:view'
   | 'queries:edit'
   | 'brands:view'
-  | 'brands:edit';
+  | 'brands:edit'
+  | 'influencers:view'
+  | 'influencers:edit';
+
+export type MenuSubAccent = 'default' | 'warning' | 'success' | 'error' | 'info';
 
 export type MenuItem = {
   id: string;
   label: string;
   path?: string;
   icon?: string;
+  accent?: MenuSubAccent;
   requiredPermission?: Permission;
   children?: MenuItem[];
 };
@@ -87,10 +92,23 @@ function buildMenu(_role: string): MenuItem[] {
       icon: 'brands',
       requiredPermission: 'brands:view',
       children: [
-        { id: 'brands-all', label: 'All Brands', path: '/brands' },
-        { id: 'brands-pending', label: 'Pending Brands', path: '/brands/pending' },
-        { id: 'brands-approved', label: 'Approved Brands', path: '/brands/approved' },
-        { id: 'brands-rejected', label: 'Rejected Brands', path: '/brands/rejected' },
+        { id: 'brands-all', label: 'All', path: '/brands', accent: 'default' },
+        { id: 'brands-pending', label: 'Pending', path: '/brands/pending', accent: 'warning' },
+        { id: 'brands-approved', label: 'Approved', path: '/brands/approved', accent: 'success' },
+        { id: 'brands-rejected', label: 'Rejected', path: '/brands/rejected', accent: 'error' },
+      ],
+    },
+    {
+      id: 'influencers',
+      label: 'Influencers',
+      icon: 'influencers',
+      requiredPermission: 'influencers:view',
+      children: [
+        { id: 'influencers-all', label: 'All', path: '/influencers', accent: 'default' },
+        { id: 'influencers-review', label: 'In Review', path: '/influencers/review', accent: 'warning' },
+        { id: 'influencers-verified', label: 'Verified', path: '/influencers/verified', accent: 'success' },
+        { id: 'influencers-rejected', label: 'Rejected', path: '/influencers/rejected', accent: 'error' },
+        { id: 'influencers-suspended', label: 'Suspended', path: '/influencers/suspended', accent: 'info' },
       ],
     },
   ];
@@ -99,13 +117,13 @@ function buildMenu(_role: string): MenuItem[] {
 /** Map backend role to frontend permissions */
 function getPermissionsForRole(role: string): Permission[] {
   if (role === 'super_admin') {
-    return ['dashboard:view', 'boxes:view', 'boxes:create', 'boxes:edit', 'boxes:toggle', 'queries:view', 'queries:edit', 'brands:view', 'brands:edit'];
+    return ['dashboard:view', 'boxes:view', 'boxes:create', 'boxes:edit', 'boxes:toggle', 'queries:view', 'queries:edit', 'brands:view', 'brands:edit', 'influencers:view', 'influencers:edit'];
   }
   if (role === 'admin') {
-    return ['dashboard:view', 'boxes:view', 'boxes:create', 'boxes:edit', 'boxes:toggle', 'queries:view', 'queries:edit', 'brands:view', 'brands:edit'];
+    return ['dashboard:view', 'boxes:view', 'boxes:create', 'boxes:edit', 'boxes:toggle', 'queries:view', 'queries:edit', 'brands:view', 'brands:edit', 'influencers:view', 'influencers:edit'];
   }
   // Default: read-only
-  return ['dashboard:view', 'boxes:view', 'queries:view', 'brands:view'];
+  return ['dashboard:view', 'boxes:view', 'queries:view', 'brands:view', 'influencers:view'];
 }
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {

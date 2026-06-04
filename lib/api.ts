@@ -920,3 +920,252 @@ export async function apiUpdateBrandAccountStatus(
     });
     return res.data;
 }
+
+// ─── Platform Influencers (admin) ─────────────────────────────────────────────
+
+export type ApiPlatformInfluencerStatus =
+    | 'PROFILE_PENDING'
+    | 'INSTAGRAM_CONNECTED'
+    | 'ADMIN_REVIEW_PENDING'
+    | 'VERIFIED'
+    | 'REJECTED'
+    | 'SUSPENDED';
+
+export type ApiPlatformInfluencerListItem = {
+    id: string;
+    influencerId: string;
+    profileImage?: string;
+    fullName: string;
+    email: string;
+    mobile: string;
+    instagramHandle?: string;
+    followers: number;
+    engagementRate: number;
+    category?: string;
+    categories: string[];
+    status: ApiPlatformInfluencerStatus;
+    verifiedBadge: boolean;
+    profileCompleted: boolean;
+    canApprove: boolean;
+    country?: string;
+    state?: string;
+    city?: string;
+    createdAt?: string;
+};
+
+export type ApiPlatformInfluencerProfile = {
+    _id: string;
+    influencerId: string;
+    profilePhoto?: string;
+    bio?: string;
+    gender?: string;
+    dateOfBirth?: string;
+    languages?: string[];
+    country?: string;
+    state?: string;
+    city?: string;
+    categories?: string[];
+    collaborationTypes?: string[];
+    priceRangeMin?: number;
+    priceRangeMax?: number;
+    mediaKitUrl?: string;
+    profileCompleted?: boolean;
+};
+
+export type ApiPlatformInfluencerInstagram = {
+    instagramHandle?: string;
+    instagramProfileUrl?: string;
+    username?: string;
+    followersCount?: number;
+    followingCount?: number;
+    totalPosts?: number;
+    engagementRate?: number;
+    category?: string;
+    profilePicture?: string;
+    lastFetchedAt?: string;
+};
+
+export type ApiApprovalReadiness = {
+    profileCompleted: boolean;
+    instagramConnected: boolean;
+    pendingAdminReview: boolean;
+    canApprove: boolean;
+    missingRequirements: string[];
+};
+
+export type ApiPlatformInfluencerStatusHistory = {
+    _id: string;
+    influencerId: string;
+    previousStatus?: string;
+    newStatus: string;
+    changedBy?: string;
+    changedByRole?: string;
+    remarks?: string;
+    createdAt?: string;
+};
+
+export type ApiPlatformInfluencerVerificationLog = {
+    _id: string;
+    influencerId: string;
+    adminId?: string;
+    action: string;
+    previousStatus?: string;
+    newStatus?: string;
+    reason?: string;
+    createdAt?: string;
+};
+
+export type ApiPlatformInfluencerDetails = {
+    _id: string;
+    uuid?: string;
+    fullName: string;
+    email: string;
+    mobile: string;
+    country: string;
+    state: string;
+    city: string;
+    status: ApiPlatformInfluencerStatus;
+    verifiedBadge: boolean;
+    verifiedAt?: string | null;
+    rejectionReason?: string;
+    rejectedAt?: string | null;
+    suspensionReason?: string;
+    suspendedAt?: string | null;
+    createdAt?: string;
+    updatedAt?: string;
+    profile: ApiPlatformInfluencerProfile | null;
+    instagram: ApiPlatformInfluencerInstagram | null;
+    approvalReadiness: ApiApprovalReadiness;
+    statusHistory: ApiPlatformInfluencerStatusHistory[];
+    verificationLogs: ApiPlatformInfluencerVerificationLog[];
+};
+
+export type ApiPlatformInfluencerSortField =
+    | 'createdAt'
+    | 'fullName'
+    | 'email'
+    | 'status'
+    | 'verifiedAt'
+    | 'followers';
+
+export type ApiPlatformInfluencerListParams = {
+    search?: string;
+    status?: ApiPlatformInfluencerStatus;
+    category?: string;
+    country?: string;
+    state?: string;
+    city?: string;
+    verificationStatus?: 'verified' | 'pending';
+    followersMin?: number;
+    followersMax?: number;
+    page?: number;
+    limit?: number;
+    sortBy?: ApiPlatformInfluencerSortField;
+    sortOrder?: 'asc' | 'desc';
+};
+
+function buildInfluencerQueryString(params?: ApiPlatformInfluencerListParams): string {
+    const q = new URLSearchParams();
+    if (params?.search) q.set('search', params.search);
+    if (params?.status) q.set('status', params.status);
+    if (params?.category) q.set('category', params.category);
+    if (params?.country) q.set('country', params.country);
+    if (params?.state) q.set('state', params.state);
+    if (params?.city) q.set('city', params.city);
+    if (params?.verificationStatus) q.set('verificationStatus', params.verificationStatus);
+    if (params?.followersMin !== undefined) q.set('followersMin', String(params.followersMin));
+    if (params?.followersMax !== undefined) q.set('followersMax', String(params.followersMax));
+    if (params?.page) q.set('page', String(params.page));
+    if (params?.limit) q.set('limit', String(params.limit));
+    if (params?.sortBy) q.set('sortBy', params.sortBy);
+    if (params?.sortOrder) q.set('sortOrder', params.sortOrder);
+    const qs = q.toString();
+    return qs ? `?${qs}` : '';
+}
+
+async function fetchPlatformInfluencerList(
+    params?: ApiPlatformInfluencerListParams
+): Promise<{
+    data: ApiPlatformInfluencerListItem[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+}> {
+    const res = await apiFetch<ApiListResponse<ApiPlatformInfluencerListItem>>(
+        `/admins/influencers${buildInfluencerQueryString(params)}`
+    );
+    return res.data;
+}
+
+export async function apiListPlatformInfluencers(params?: ApiPlatformInfluencerListParams) {
+    return fetchPlatformInfluencerList(params);
+}
+
+export async function apiListPlatformInfluencersInReview(params?: ApiPlatformInfluencerListParams) {
+    return fetchPlatformInfluencerList({
+        ...params,
+        status: 'ADMIN_REVIEW_PENDING',
+    });
+}
+
+export async function apiListVerifiedPlatformInfluencers(params?: ApiPlatformInfluencerListParams) {
+    return fetchPlatformInfluencerList({ ...params, status: 'VERIFIED' });
+}
+
+export async function apiListRejectedPlatformInfluencers(params?: ApiPlatformInfluencerListParams) {
+    return fetchPlatformInfluencerList({ ...params, status: 'REJECTED' });
+}
+
+export async function apiListSuspendedPlatformInfluencers(params?: ApiPlatformInfluencerListParams) {
+    return fetchPlatformInfluencerList({ ...params, status: 'SUSPENDED' });
+}
+
+export async function apiGetPlatformInfluencerDetails(id: string): Promise<ApiPlatformInfluencerDetails> {
+    const res = await apiFetch<ApiSingleResponse<ApiPlatformInfluencerDetails>>(
+        `/admins/influencers/${id}`
+    );
+    return res.data;
+}
+
+export async function apiApprovePlatformInfluencer(
+    id: string,
+    remarks?: string
+): Promise<ApiPlatformInfluencerDetails> {
+    const res = await apiFetch<ApiSingleResponse<ApiPlatformInfluencerDetails>>(
+        `/admins/influencers/${id}/approve`,
+        {
+            method: 'POST',
+            body: JSON.stringify({ remarks: remarks ?? '' }),
+        }
+    );
+    return res.data;
+}
+
+export async function apiRejectPlatformInfluencer(
+    id: string,
+    reason: string
+): Promise<ApiPlatformInfluencerDetails> {
+    const res = await apiFetch<ApiSingleResponse<ApiPlatformInfluencerDetails>>(
+        `/admins/influencers/${id}/reject`,
+        {
+            method: 'POST',
+            body: JSON.stringify({ reason }),
+        }
+    );
+    return res.data;
+}
+
+export async function apiSuspendPlatformInfluencer(
+    id: string,
+    reason: string
+): Promise<ApiPlatformInfluencerDetails> {
+    const res = await apiFetch<ApiSingleResponse<ApiPlatformInfluencerDetails>>(
+        `/admins/influencers/${id}/suspend`,
+        {
+            method: 'POST',
+            body: JSON.stringify({ reason }),
+        }
+    );
+    return res.data;
+}
